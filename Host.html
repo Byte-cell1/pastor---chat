@@ -7,15 +7,19 @@
 body{margin:0;font-family:Arial;background:#111;color:#fff}
 .top{padding:10px;background:#1a1a1a;border-bottom:1px solid #333}
 input,button{padding:8px;border-radius:5px;border:none}
-input{width:65%;background:#222;color:#fff}
+input{width:50%;background:#222;color:#fff}
 button{background:#25D366;color:#000;cursor:pointer}
-#users{height:200px;overflow-y:auto;border-bottom:1px solid #333;padding:10px}
+#users{height:170px;overflow-y:auto;border-bottom:1px solid #333;padding:10px}
 .user{padding:8px;margin:5px 0;background:#222;border-radius:5px;cursor:pointer}
 .user.active{background:#25D366;color:#000}
-#chat{height:calc(100vh - 300px);overflow-y:auto;padding:10px}
+#chat{height:calc(100vh - 330px);overflow-y:auto;padding:10px}
 .msg{margin:8px 0;padding:8px 12px;border-radius:10px;max-width:70%}
 .me{background:#25D366;color:#000;margin-left:auto;text-align:right}
 .them{background:#333}
+.msg img{max-width:200px;border-radius:8px;margin-top:5px}
+.bottom{position:fixed;bottom:0;left:0;width:100%;display:flex;background:#1a1a1a;padding:5px}
+#msgInput{flex:1}
+#fileBtn,#camBtn{background:#444;margin:0 3px}
 </style>
 </head>
 <body>
@@ -28,16 +32,26 @@ button{background:#25D366;color:#000;cursor:pointer}
 
 <div id="users"></div>
 <div id="chat">Click a user to start chatting</div>
-<input id="msgInput" placeholder="Type reply..." style="width:75%;position:fixed;bottom:0;left:0">
-<button onclick="sendMsg()" style="width:20%;position:fixed;bottom:0;right:0">Send</button>
+
+<div class="bottom">
+  <input id="msgInput" placeholder="Type reply...">
+  <button id="camBtn" onclick="openCamera()">📷</button>
+  <button id="fileBtn" onclick="document.getElementById('fileInput').click()">📎</button>
+  <button onclick="sendMsg()">Send</button>
+</div>
+
+<input type="file" id="fileInput" accept="image/*" style="display:none">
+<input type="file" id="camInput" accept="image/*" capture="environment" style="display:none">
+
+<audio id="notifySound" src="https://notificationsounds.com/storage/sounds/file-sounds-1201-pop.mp3" preload="auto"></audio>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, push, onChildAdded, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getStorage, ref as sref, uploadBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-storage.js";
 
-// REPLACE THIS WITH YOUR FIREBASE CONFIG
 const firebaseConfig = {
-  apiKey: "AIzaSyDXeh9GNe3E8L6tE9xMA8fE2OJXCSuhLMY",
+    apiKey: "AIzaSyDXeh9GNe3E8L6tE9xMA8fE2OJXCSuhLMY",
   authDomain: "church-project-bfb2d.firebaseapp.com",
   databaseURL: "https://church-project-bfb2d-default-rtdb.firebaseio.com",
   projectId: "church-project-bfb2d",
@@ -49,33 +63,35 @@ const firebaseConfig = {
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
+const storage = getStorage(app);
 let currentUser = null;
 
-// Show users
+// Request notification permission on load
+if(Notification.permission!== 'granted') Notification.requestPermission();
+
+// Users list
 onValue(ref(db, 'users'), snap => {
   const usersDiv = document.getElementById('users');
   usersDiv.innerHTML = '';
   snap.forEach(child => {
     const uid = child.key;
     const div = document.createElement('div');
-    div.className = 'user' + (uid === currentUser ? ' active' : '');
+    div.className = 'user' + (uid === currentUser? ' active' : '');
     div.textContent = uid;
     div.onclick = () => openChat(uid);
     usersDiv.appendChild(div);
   });
 });
 
-// Add user
 window.addUser = function() {
   const name = document.getElementById('newUser').value.trim();
   if(!name) return alert('Enter username');
   const uid = name + '_' + Date.now();
   push(ref(db, 'users/' + uid), {text:'User created', sender:'system', time:Date.now()});
   document.getElementById('newUser').value = '';
-  alert('Copy this link for ' + name + ':\nhttps://byte-cell1.github.io/pastor---chat/user.html?uid=' + uid);
+  alert('Copy this link:\nhttps://byte-cell1.github.io/pastor---chat/user.html?uid=' + uid);
 }
 
-// Open chat
 function openChat(uid) {
   currentUser = uid;
   document.querySelectorAll('.user').forEach(u=>u.classList.remove('active'));
@@ -84,19 +100,43 @@ function openChat(uid) {
   onChildAdded(ref(db, 'chats/' + uid), snap => {
     const m = snap.val();
     const div = document.createElement('div');
-    div.className = 'msg ' + (m.sender === 'pastor' ? 'me' : 'them');
-    div.textContent = m.text;
+    div.className = 'msg ' + (m.sender === 'pastor'? 'me' : 'them');
+    if(m.type === 'image') div.innerHTML = `<img src="${m.text}">`;
+    else div.textContent = m.text;
     document.getElementById('chat').appendChild(div);
     document.getElementById('chat').scrollTop = 99999;
+
+    if(m.sender === 'user') {
+      document.getElementById('notifySound').play();
+      if(Notification.permission === 'granted') {
+        new Notification('New message from ' + uid, {body: m.text});
+      }
+    }
   });
 }
 
-// Send message
 window.sendMsg = function() {
   const txt = document.getElementById('msgInput').value.trim();
-  if(!txt || !currentUser) return alert('Click a user first');
+  if(!txt ||!currentUser) return alert('Click a user first');
   push(ref(db, 'chats/' + currentUser), {text:txt, sender:'pastor', time:Date.now()});
   document.getElementById('msgInput').value = '';
+}
+
+// Gallery upload
+document.getElementById('fileInput').onchange = e => uploadFile(e.target.files[0]);
+
+// Camera upload - this triggers phone permission
+window.openCamera = function() {
+  document.getElementById('camInput').click();
+}
+document.getElementById('camInput').onchange = e => uploadFile(e.target.files[0]);
+
+async function uploadFile(file) {
+  if(!file ||!currentUser) return alert('Select user first');
+  const storageRef = sref(storage, 'images/' + currentUser + '/' + Date.now() + '.jpg');
+  const snap = await uploadBytes(storageRef, file);
+  const url = await getDownloadURL(snap.ref);
+  push(ref(db, 'chats/' + currentUser), {text:url, sender:'pastor', type:'image', time:Date.now()});
 }
 </script>
 </body>

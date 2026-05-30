@@ -1,177 +1,103 @@
-l<!DOCTYPE html>
-<html lang="en">
+<!DOCTYPE html>
+<html>
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Pastor Dashboard</title>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI,Roboto,sans-serif}
-body{background:#0b141a;color:#e9edef;height:100vh;display:flex}
-.sidebar{width:320px;background:#111b21;border-right:1px solid #222f35;display:flex;flex-direction:column}
-.sidebar h2{padding:15px;background:#202c33;font-size:16px;font-weight:600}
-.add-user{padding:10px;background:#202c33;border-bottom:1px solid #222f35}
-.add-user input{width:100%;padding:10px;border-radius:8px;border:none;background:#2a3942;color:#e9edef;outline:none}
-.user-list{flex:1;overflow-y:auto}
-.user-item{padding:12px 15px;cursor:pointer;border-bottom:1px solid #222f35;display:flex;justify-content:space-between;align-items:center}
-.user-item:hover{background:#202c33}
-.user-item.active{background:#2a3942}
-.user-name{font-size:14px}
-.remove-btn{background:#ff3b3b;border:none;color:#fff;padding:4px 8px;border-radius:4px;font-size:12px;cursor:pointer}
-.chat-area{flex:1;display:flex;flex-direction:column}
-.chat-header{padding:15px;background:#202c33;border-bottom:1px solid #222f35;display:flex;justify-content:space-between;align-items:center}
-.chat-header .status{font-size:12px;color:#00a884}
-.chat-body{flex:1;overflow-y:auto;padding:20px;background:#0b141a}
-.msg{margin:8px 0;display:flex}
-.msg.user{justify-content:flex-start}
-.msg.pastor{justify-content:flex-end}
-.bubble{max-width:65%;padding:8px 12px;border-radius:7.5px;font-size:14.5px;line-height:1.4}
-.user .bubble{background:#202c33;border-top-left-radius:0}
-.pastor .bubble{background:#005c4b;border-top-right-radius:0}
-.time{font-size:11px;color:#667781;margin-top:3px;text-align:right}
-.chat-input{padding:10px 15px;background:#202c33;display:flex;gap:10px}
-.chat-input input{flex:1;padding:12px 15px;border-radius:8px;border:none;background:#2a3942;color:#e9edef;outline:none}
-.chat-input button{background:#00a884;border:none;color:#fff;width:45px;height:45px;border-radius:50%;cursor:pointer;font-size:18px}
-.chat-input button:disabled{opacity:0.5;cursor:not-allowed}
-.no-chat{flex:1;display:flex;align-items:center;justify-content:center;color:#8696a0}
-@media(max-width:768px){
- .sidebar{position:absolute;z-index:10;width:100%;height:100%;transform:translateX(-100%);transition:0.3s}
- .sidebar.show{transform:translateX(0)}
-}
+body{margin:0;font-family:Arial;background:#111;color:#fff}
+.top{padding:10px;background:#1a1a1a;border-bottom:1px solid #333}
+input,button{padding:8px;border-radius:5px;border:none}
+input{width:65%;background:#222;color:#fff}
+button{background:#25D366;color:#000;cursor:pointer}
+#users{height:200px;overflow-y:auto;border-bottom:1px solid #333;padding:10px}
+.user{padding:8px;margin:5px 0;background:#222;border-radius:5px;cursor:pointer}
+.user.active{background:#25D366;color:#000}
+#chat{height:calc(100vh - 300px);overflow-y:auto;padding:10px}
+.msg{margin:8px 0;padding:8px 12px;border-radius:10px;max-width:70%}
+.me{background:#25D366;color:#000;margin-left:auto;text-align:right}
+.them{background:#333}
 </style>
 </head>
 <body>
-<div class="sidebar" id="sidebar">
-  <h2>Users</h2>
-  <div class="add-user">
-    <input id="newUserName" placeholder="Enter user name + Enter">
-  </div>
-  <div class="user-list" id="userList"></div>
+
+<div class="top">
+  <b>Select a user</b> <span style="color:#25D366;font-size:12px">Pastor Online</span><br>
+  <input id="newUser" placeholder="Enter username">
+  <button onclick="addUser()">Add</button>
+  <div id="userList"></div>
 </div>
 
-<div class="chat-area">
-  <div class="chat-header">
-    <div>
-      <div id="chatTitle">Select a user</div>
-      <div class="status" id="status">Pastor Online</div>
-    </div>
-    <button id="menuBtn" style="display:none;background:none;border:none;color:#e9edef;font-size:20px;cursor:pointer" onclick="toggleMenu()">⋮</button>
-  </div>
-  <div id="chatBody" class="chat-body">
-    <div class="no-chat">Click a user to start chatting</div>
-  </div>
-  <div class="chat-input">
-    <input id="msgInput" placeholder="Type a message..." disabled>
-    <button id="sendBtn" onclick="sendMessage()" disabled>➤</button>
-  </div>
-</div>
+<div id="users"></div>
 
-<script>
-const firebaseConfig = YOUR_FIREBASE_CONFIG;
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+<div id="chat">Click a user to start chatting</div>
+<input id="msgInput" placeholder="Type reply..." style="width:75%;position:fixed;bottom:0;left:0">
+<button onclick="sendMsg()" style="width:20%;position:fixed;bottom:0;right:0">Send</button>
 
-let currentRoom = null;
-let currentUserName = null;
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, push, onChildAdded, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-// Mark pastor online/offline
-const pastorRef = db.ref('status/pastor');
-pastorRef.set(true);
-window.addEventListener('beforeunload', () => pastorRef.set(false));
-pastorRef.onDisconnect().set(false);
+// PASTE YOUR FIREBASE CONFIG HERE
+const firebaseConfig = {
+  apiKey: "YOUR_API_KEY",
+  authDomain: "YOUR_AUTH_DOMAIN", 
+  databaseURL: "YOUR_DATABASE_URL",
+  projectId: "YOUR_PROJECT_ID",
+  storageBucket: "YOUR_STORAGE_BUCKET",
+  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+  appId: "YOUR_APP_ID"
+};
 
-// Add user
-document.getElementById('newUserName').addEventListener('keypress', e => {
-  if(e.key === 'Enter'){
-    const name = e.target.value.trim();
-    if(!name) return;
-    const userId = 'user_' + Date.now();
-    db.ref('users/' + userId).set({name: name, created: Date.now()});
-    db.ref('chats/' + userId).set({name: name});
-    e.target.value = '';
-    alert('User created! Send them this link:\nuser.html?uid=' + userId);
-  }
-});
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
-// Load users
-db.ref('users').on('value', snap => {
-  const list = document.getElementById('userList');
-  list.innerHTML = '';
+let currentUser = null;
+
+// Load users list
+onValue(ref(db, 'users'), snap => {
+  const usersDiv = document.getElementById('users');
+  usersDiv.innerHTML = '';
   snap.forEach(child => {
-    const id = child.key;
-    const data = child.val();
+    const uid = child.key;
     const div = document.createElement('div');
-    div.className = 'user-item' + (id === currentRoom ? ' active' : '');
-    div.innerHTML = `<span class="user-name">${data.name}</span><button class="remove-btn" onclick="removeUser('${id}', event)">Remove</button>`;
-    div.onclick = (e) => {
-      if(!e.target.classList.contains('remove-btn')) openChat(id, data.name);
-    };
-    list.appendChild(div);
+    div.className = 'user' + (uid === currentUser ? ' active' : '');
+    div.textContent = uid;
+    div.onclick = () => openChat(uid);
+    usersDiv.appendChild(div);
   });
 });
 
-function openChat(userId, name){
-  currentRoom = userId;
-  currentUserName = name;
-  document.getElementById('chatTitle').textContent = name;
-  document.getElementById('menuBtn').style.display = 'block';
-  document.getElementById('msgInput').disabled = false;
-  document.getElementById('sendBtn').disabled = false;
-  
-  document.querySelectorAll('.user-item').forEach(u => u.classList.remove('active'));
-  event.currentTarget.classList.add('active');
-
-  loadMessages(userId);
+// Add user function
+window.addUser = function() {
+  const name = document.getElementById('newUser').value.trim();
+  if(!name) return alert('Enter username');
+  const uid = name + '_' + Date.now();
+  push(ref(db, 'users/' + uid), {text:'User created', sender:'system', time:Date.now()});
+  document.getElementById('newUser').value = '';
+  alert('Link for ' + name + ':\nhttps://byte-cell1.github.io/pastor---chat/user.html?uid=' + uid);
 }
 
-function loadMessages(userId){
-  const chatBody = document.getElementById('chatBody');
-  chatBody.innerHTML = '';
-  db.ref('chats/' + userId + '/messages').off();
-  db.ref('chats/' + userId + '/messages').on('child_added', snap => {
+// Open chat with user
+function openChat(uid) {
+  currentUser = uid;
+  document.getElementById('chat').innerHTML = '';
+  onChildAdded(ref(db, 'chats/' + uid), snap => {
     const m = snap.val();
     const div = document.createElement('div');
-    div.className = 'msg ' + m.sender;
-    div.innerHTML = `<div class="bubble">${m.text}<div class="time">${formatTime(m.time)}</div></div>`;
-    chatBody.appendChild(div);
-    chatBody.scrollTop = chatBody.scrollHeight;
+    div.className = 'msg ' + (m.sender === 'pastor' ? 'me' : 'them');
+    div.textContent = m.text;
+    document.getElementById('chat').appendChild(div);
+    document.getElementById('chat').scrollTop = 99999;
   });
 }
 
-function sendMessage(){
-  const text = document.getElementById('msgInput').value.trim();
-  if(!text || !currentRoom) return;
-  db.ref('chats/' + currentRoom + '/messages').push({
-    text: text,
-    sender: 'pastor',
-    time: Date.now()
-  });
+// Send message
+window.sendMsg = function() {
+  const txt = document.getElementById('msgInput').value.trim();
+  if(!txt || !currentUser) return;
+  push(ref(db, 'chats/' + currentUser), {text:txt, sender:'pastor', time:Date.now()});
   document.getElementById('msgInput').value = '';
 }
-
-function removeUser(userId, e){
-  e.stopPropagation();
-  if(confirm('Remove this user? All chat will be deleted.')){
-    db.ref('users/' + userId).remove();
-    db.ref('chats/' + userId).remove();
-    if(currentRoom === userId){
-      currentRoom = null;
-      document.getElementById('chatBody').innerHTML = '<div class="no-chat">User removed</div>';
-      document.getElementById('chatTitle').textContent = 'Select a user';
-      document.getElementById('msgInput').disabled = true;
-      document.getElementById('sendBtn').disabled = true;
-    }
-  }
-}
-
-function formatTime(ts){
-  const d = new Date(ts);
-  return d.getHours() + ':' + String(d.getMinutes()).padStart(2,'0');
-}
-
-document.getElementById('msgInput').addEventListener('keypress', e => {
-  if(e.key === 'Enter') sendMessage();
-});
 </script>
 </body>
 </html>

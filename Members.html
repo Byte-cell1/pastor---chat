@@ -130,6 +130,7 @@ async function uploadFile(file, type) {
   const url = await getDownloadURL(snap.ref);
   push(ref(db, 'chats/' + currentUid), {text:url, sender:'user', type:type, time:Date.now()});
 }
+
 </script>
 </body>
 </html>

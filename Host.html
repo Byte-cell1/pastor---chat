@@ -6,6 +6,8 @@
 <style>
 body{margin:0;font-family:Arial;background:#0b141a;color:#fff;display:flex;height:100vh}
 #users{width:280px;background:#111b21;border-right:1px solid #2a3b44;overflow-y:auto}
+.topbar{padding:12px;background:#1f2c33;border-bottom:1px solid #2a3b44;display:flex;justify-content:space-between;align-items:center}
+.addbtn{background:#005c4b;border:none;color:#fff;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:14px}
 .user{padding:12px;cursor:pointer;border-bottom:1px solid #1f2c33}
 .user:hover{background:#202c33}
 .user.active{background:#005c4b}
@@ -24,7 +26,13 @@ body{margin:0;font-family:Arial;background:#0b141a;color:#fff;display:flex;heigh
 </head>
 <body>
 
-<div id="users"><div style="padding:12px">Loading users...</div></div>
+<div id="users">
+  <div class="topbar">
+    <b>Members</b>
+    <button class="addbtn" onclick="addMember()">+ Add</button>
+  </div>
+  <div id="usersList"><div style="padding:12px">Loading...</div></div>
+</div>
 
 <div id="chat">
   <div class="top"><b>Select a user</b></div>
@@ -42,7 +50,7 @@ body{margin:0;font-family:Arial;background:#0b141a;color:#fff;display:flex;heigh
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, push, onChildAdded, onValue } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, push, onChildAdded, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDXeh9GNe3E8L6tE9xMA8fE2OJXCSuhLMY",
@@ -61,8 +69,12 @@ let currentUid = null;
 
 // Load user list
 onValue(ref(db, 'chats'), snap => {
-  const usersDiv = document.getElementById('users');
+  const usersDiv = document.getElementById('usersList');
   usersDiv.innerHTML = '';
+  if(!snap.exists()) {
+    usersDiv.innerHTML = '<div style="padding:12px;color:#8696a0">No members yet. Click + Add</div>';
+    return;
+  }
   snap.forEach(child => {
     const uid = child.key;
     const div = document.createElement('div');
@@ -72,6 +84,25 @@ onValue(ref(db, 'chats'), snap => {
     usersDiv.appendChild(div);
   });
 });
+
+// Add new member
+window.addMember = function() {
+  const name = prompt('Enter member name/ID:');
+  if(!name) return;
+  const uid = name + '_' + Date.now();
+  const link = window.location.origin + '/pastor---chat/Members.html?uid=' + uid;
+
+  // Create empty chat so user appears in list
+  set(ref(db, 'chats/' + uid + '/welcome'), {
+    text: 'Welcome! You can now chat with Pastor.',
+    sender: 'host',
+    type: 'text',
+    time: Date.now()
+  });
+
+  alert('Member created!\n\nSend this link to member:\n' + link);
+  navigator.clipboard.writeText(link);
+}
 
 function loadChat(uid, el) {
   currentUid = uid;
@@ -126,7 +157,6 @@ document.getElementById('audioInput').onchange = e => {
   }
   reader.readAsDataURL(file);
 }
-
 </script>
 </body>
 </html>

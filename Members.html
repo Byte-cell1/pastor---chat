@@ -40,31 +40,27 @@ body{margin:0;font-family:Arial;background:#0b141a;color:#fff;display:flex;flex-
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
 import { getDatabase, ref, push, onChildAdded } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
-// PASTE YOUR REAL KEYS HERE - Get from Firebase Console > Project Settings
 const firebaseConfig = {
-   apiKey: "AIzaSyDXeh9GNe3E8L6tE9xMA8fE2OJXCSuhLMY",
+  apiKey: "AIzaSyDXeh9GNe3E8L6tE9xMA8fE2OJXCSuhLMY",
   authDomain: "church-project-bfb2d.firebaseapp.com",
   databaseURL: "https://church-project-bfb2d-default-rtdb.firebaseio.com",
   projectId: "church-project-bfb2d",
   storageBucket: "church-project-bfb2d.firebasestorage.app",
   messagingSenderId: "433486920211",
-  appId: "1:433486920211:web:8cb750d19c05ce0d1d9de6",
-  measurementId: "G-G0LS2TKT4G"
+  appId: "1:433486920211:web:8cb750d19c05ce0d1d9de6"
 };
 
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-// Get uid from link: Members.html?uid=Chi_123
 const params = new URLSearchParams(window.location.search);
 const uid = params.get('uid');
 
 if(!uid) {
-  document.getElementById('status').textContent = 'Error: No UID in link';
+  document.getElementById('status').textContent = 'Error: No UID';
 } else {
   document.getElementById('status').textContent = 'Connected';
 
-  // Load messages
   onChildAdded(ref(db, 'chats/' + uid), snap => {
     const m = snap.val();
     const div = document.createElement('div');
@@ -79,7 +75,6 @@ if(!uid) {
   });
 }
 
-// Send text
 window.sendText = function() {
   const txt = document.getElementById('msgInput').value.trim();
   if(!txt ||!uid) return;
@@ -87,7 +82,6 @@ window.sendText = function() {
   document.getElementById('msgInput').value = '';
 }
 
-// Send image
 window.sendImage = function() {
   document.getElementById('imgInput').click();
 }
@@ -100,7 +94,6 @@ document.getElementById('imgInput').onchange = e => {
   reader.readAsDataURL(file);
 }
 
-// Send voice
 window.sendVoice = function() {
   document.getElementById('audioInput').click();
 }

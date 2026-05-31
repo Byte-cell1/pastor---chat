@@ -1,56 +1,98 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Pastor Dashboard</title>
+<title>King of Kings Anglican Church - Chat</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-body{margin:0;font-family:Arial;background:#0b141a;color:#fff;display:flex;height:100vh}
-#users{width:280px;background:#111b21;border-right:1px solid #2a3b44;overflow-y:auto}
-.topbar{padding:12px;background:#1f2c33;border-bottom:1px solid #2a3b44;display:flex;justify-content:space-between;align-items:center}
-.addbtn{background:#005c4b;border:none;color:#fff;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:14px}
-.user{padding:12px;cursor:pointer;border-bottom:1px solid #1f2c33}
-.user:hover{background:#202c33}
-.user.active{background:#005c4b}
-#chat{flex:1;display:flex;flex-direction:column}
-.top{padding:12px;background:#1f2c33;border-bottom:1px solid #2a3b44}
-#messages{flex:1;overflow-y:auto;padding:10px}
-.msg{margin:8px 0;padding:8px 12px;border-radius:8px;max-width:70%}
-.me{background:#005c4b;margin-left:auto;text-align:right}
-.them{background:#202c33}
-.msg img{max-width:200px;border-radius:8px}
-.msg audio{max-width:220px}
-.bottom{display:flex;padding:5px;background:#1f2c33;gap:4px}
-#msgInput{flex:1;padding:10px;border:none;border-radius:20px;background:#2a3b44;color:#fff;outline:none}
-.bottom button{border:none;border-radius:50%;width:45px;height:45px;font-size:20px;cursor:pointer;background:#2a3b44;color:#fff}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial;background:#000;color:#ffd700;display:flex;flex-direction:column;height:100vh}
+.top{padding:15px;background:#111;text-align:center;border-bottom:3px solid #ffd700;position:relative;box-shadow:0 4px 20px rgba(255,215,0,0.3)}
+.church-name{font-size:12px;color:#ffd700;margin-bottom:5px;font-weight:700;letter-spacing:1px}
+.topbtns{position:absolute;right:15px;top:12px;display:flex;gap:8px}
+.topbtns button{background:#000;border:2px solid #ffd700;color:#ffd700;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:11px;font-weight:700;transition:0.3s}
+.topbtns button:hover{background:#ffd700;color:#000}
+#messages{flex:1;overflow-y:auto;padding:20px;background:#000 url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" opacity="0.05"><path d="M30 5 L35 25 L55 25 L40 35 L45 55 L30 45 L15 55 L20 35 L5 25 L25 25 Z" fill="%23ffd700"/></svg>')}
+.msgwrap{margin:8px 0;display:flex;flex-direction:column;max-width:75%;animation:slideIn 0.3s ease}
+@keyframes slideIn{from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)}}
+
+/* FLIPPED: Pastor/Host on LEFT, Member/You on RIGHT */
+.host{align-self:flex-start}
+.me{align-self:flex-end}
+
+.msg{padding:12px 16px;border-radius:18px;word-wrap:break-word;line-height:1.4;box-shadow:0 4px 15px rgba(255,215,0,0.2);border:1px solid #ffd700}
+.host.msg{background:#111;color:#ffd700;border-bottom-left-radius:5px}
+.me.msg{background:linear-gradient(135deg,#ffd700 0%,#ffed4e 100%);color:#000;border-bottom-right-radius:5px;font-weight:600}
+.bot.msg{border:2px solid #ffd700;background:#1a1a1a;color:#ffd700}
+
+.time{font-size:10px;color:#b8860b;margin-top:3px;padding:0 4px}
+.host.time{text-align:left}
+.me.time{text-align:right}
+
+.msg img{max-width:250px;border-radius:12px;margin-top:4px;border:2px solid #ffd700;box-shadow:0 4px 15px rgba(255,215,0,0.4)}
+.msg audio{max-width:250px;margin-top:4px;filter:sepia(1) hue-rotate(45deg)}
+.bottom{display:flex;padding:10px;background:#111;gap:8px;align-items:center;border-top:3px solid #ffd700}
+#msgInput{flex:1;padding:12px 18px;border:none;border-radius:25px;background:#000;color:#ffd700;outline:none;font-size:15px;border:2px solid #ffd700}
+#msgInput:focus{border-color:#ffed4e;box-shadow:0 0 15px rgba(255,215,0,0.5)}
+.bottom button{border:none;border-radius:50%;width:48px;height:48px;font-size:22px;cursor:pointer;background:#000;color:#ffd700;border:2px solid #ffd700;transition:0.2s}
+.bottom button:hover{background:#ffd700;color:#000;transform:scale(1.1)}
+.blocked{padding:30px;text-align:center;color:#ff4444;font-weight:700}
+.loading{text-align:center;padding:50px;color:#ffd700;font-weight:600}
+.popup{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);display:none;justify-content:center;align-items:center;z-index:100}
+.popupbox{background:#111;padding:25px;border-radius:20px;max-width:90%;width:400px;border:3px solid #ffd700;box-shadow:0 10px 40px rgba(255,215,0,0.4)}
+.popupbox input{width:100%;padding:12px;margin:12px 0;border:none;border-radius:8px;background:#000;color:#ffd700;border:2px solid #ffd700;outline:none}
+.popupbox button{padding:10px 18px;border:none;border-radius:8px;cursor:pointer;margin-right:8px;font-weight:700;background:#ffd700;color:#000;border:2px solid #ffd700}
+.popupbox button:last-child{background:#000;color:#ffd700}
+.typing{font-size:11px;color:#ffd700;padding:5px 15px;font-style:italic;font-weight:600}
 </style>
 </head>
 <body>
 
-<div id="users">
-  <div class="topbar">
-    <b>Members</b>
-    <button class="addbtn" onclick="addMember()">+ Add</button>
+<div class="top">
+  <div class="church-name">👑 KING OF KINGS ANGLICAN CHURCH 👑</div>
+  <b id="userTitle">Chat with Pastor</b>
+  <div class="topbtns">
+    <button onclick="changeName()">✏️ Name</button>
+    <button onclick="changeUID()">🔑 UID</button>
   </div>
-  <div id="usersList"><div style="padding:12px">Loading...</div></div>
+  <div id="status" style="font-size:12px;color:#ffd700;font-weight:700">Online</div>
 </div>
 
-<div id="chat">
-  <div class="top"><b>Select a user</b></div>
-  <div id="messages">Click a user on left</div>
-  <div class="bottom" style="display:none">
-    <button onclick="sendImage()">📷</button>
-    <button onclick="sendVoice()">🎤</button>
-    <input id="msgInput" placeholder="Type reply..." onkeypress="if(event.key==='Enter')sendText()">
-    <button onclick="sendText()">➤</button>
-  </div>
+<div id="messages"><div class="loading">👑 Welcome to King of Kings Anglican Church... 👑</div></div>
+<div class="typing" id="typing" style="display:none">Pastor is typing...</div>
+
+<div class="bottom" id="chatInput">
+  <button onclick="sendEmoji()">😊</button>
+  <button onclick="sendImage()">📷</button>
+  <button onclick="sendVoice()">🎤</button>
+  <input id="msgInput" placeholder="Message Pastor..." onkeypress="if(event.key==='Enter')sendText()">
+  <button onclick="sendText()">➤</button>
 </div>
 
 <input type="file" id="imgInput" accept="image/*" style="display:none">
 <input type="file" id="audioInput" accept="audio/*" style="display:none">
 
+<div class="popup" id="namePopup">
+  <div class="popupbox">
+    <h3 style="color:#ffd700">Change Your Name</h3>
+    <input id="newName" placeholder="Enter your name">
+    <button onclick="saveName()">Save</button>
+    <button onclick="closeName()">Cancel</button>
+  </div>
+</div>
+
+<div class="popup" id="uidPopup">
+  <div class="popupbox">
+    <h3 style="color:#ffd700">Enter UID from Pastor</h3>
+    <p style="font-size:12px;color:#b8860b">Leave empty to get auto-assigned UID</p>
+    <input id="newUID" placeholder="Paste UID here or leave empty">
+    <button onclick="saveUID()">Join Chat</button>
+    <button onclick="closeUID()">Cancel</button>
+  </div>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, push, onChildAdded, onValue, set } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, push, onChildAdded, onValue, set, update, get } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDXeh9GNe3E8L6tE9xMA8fE2OJXCSuhLMY",
@@ -65,72 +107,156 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
-let currentUid = null;
-
-// Load user list
-onValue(ref(db, 'chats'), snap => {
-  const usersDiv = document.getElementById('usersList');
-  usersDiv.innerHTML = '';
-  if(!snap.exists()) {
-    usersDiv.innerHTML = '<div style="padding:12px;color:#8696a0">No members yet. Click + Add</div>';
-    return;
-  }
-  snap.forEach(child => {
-    const uid = child.key;
-    const div = document.createElement('div');
-    div.className = 'user';
-    div.textContent = uid;
-    div.onclick = () => loadChat(uid, div);
-    usersDiv.appendChild(div);
-  });
-});
-
-// Add new member
-window.addMember = function() {
-  const name = prompt('Enter member name/ID:');
-  if(!name) return;
-  const uid = name + '_' + Date.now();
-  const link = window.location.origin + '/pastor---chat/Members.html?uid=' + uid;
-
-  // Create empty chat so user appears in list
-  set(ref(db, 'chats/' + uid + '/welcome'), {
-    text: 'Welcome! You can now chat with Pastor.',
-    sender: 'host',
-    type: 'text',
-    time: Date.now()
-  });
-
-  alert('Member created!\n\nSend this link to member:\n' + link);
-  navigator.clipboard.writeText(link);
+// AUTO-GENERATE UID if none provided
+let uid = new URLSearchParams(window.location.search).get('uid');
+if(!uid) {
+  uid = 'KKAC_GUEST_' + Date.now() + '_' + Math.random().toString(36).substr(2,5);
+  window.history.replaceState({}, '', '?uid=' + uid);
 }
 
-function loadChat(uid, el) {
-  currentUid = uid;
-  document.querySelectorAll('.user').forEach(u=>u.classList.remove('active'));
-  el.classList.add('active');
+let userName = localStorage.getItem('KKAC_name') || 'Guest';
+let chatListener = null;
+let firstMessageLoaded = false;
 
-  document.querySelector('.top b').textContent = uid;
-  document.querySelector('.bottom').style.display = 'flex';
-  document.getElementById('messages').innerHTML = '';
+function vibrate() {
+  if(navigator.vibrate) navigator.vibrate([100,50,100]);
+}
 
-  onChildAdded(ref(db, 'chats/' + uid), snap => {
-    const m = snap.val();
-    const div = document.createElement('div');
-    div.className = 'msg ' + (m.sender === 'host'? 'me' : 'them');
+function formatTime(ts) {
+  return new Date(ts).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+}
 
-    if(m.type === 'image') div.innerHTML = `<img src="${m.text}">`;
-    else if(m.type === 'voice') div.innerHTML = `<audio controls src="${m.text}"></audio>`;
-    else div.textContent = m.text;
+// FLIPPED LOGIC: Pastor/Host = left, Member/You = right
+function displayMessage(m) {
+  if(!m || typeof m!== 'object' ||!m.text) return;
 
-    document.getElementById('messages').appendChild(div);
-    document.getElementById('messages').scrollTop = 99999;
+  if(!firstMessageLoaded) {
+    document.getElementById('messages').innerHTML = '';
+    firstMessageLoaded = true;
+  }
+
+  document.getElementById('typing').style.display = 'none';
+
+  const wrap = document.createElement('div');
+
+  // Pastor/Host/Bot messages go LEFT
+  if(m.sender === 'host' || m.sender === 'bot') {
+    wrap.className = 'msgwrap host';
+  } else {
+    wrap.className = 'msgwrap me'; // Member messages go RIGHT
+  }
+
+  const msgDiv = document.createElement('div');
+  msgDiv.className = 'msg ' + (m.sender === 'bot'? 'bot' : '');
+  if(m.type === 'image') msgDiv.innerHTML = `<img src="${m.text}">`;
+  else if(m.type === 'voice') msgDiv.innerHTML = `<audio controls src="${m.text}"></audio>`;
+  else msgDiv.textContent = m.text;
+
+  const timeDiv = document.createElement('div');
+  timeDiv.className = 'time';
+  timeDiv.textContent = formatTime(m.time || Date.now()) + (m.sender === 'bot'? ' 🤖' : '');
+
+  wrap.appendChild(msgDiv);
+  wrap.appendChild(timeDiv);
+  document.getElementById('messages').appendChild(wrap);
+  document.getElementById('messages').scrollTop = 99999;
+
+  if(m.sender!== 'user') vibrate();
+}
+
+async function initChat() {
+  document.getElementById('userTitle').textContent = 'Chat with Pastor - ' + userName;
+  document.getElementById('status').textContent = 'Online';
+
+  const chatRef = ref(db, 'chats/' + uid);
+  const snap = await get(chatRef);
+
+  if(!snap.exists()) {
+    await set(chatRef, {
+      status: 'active',
+      name: userName,
+      botStatus: 'offline',
+      church: 'King of Kings Anglican Church',
+      created: Date.now(),
+      welcome: {text: 'Welcome to King of Kings Anglican Church! 👑 Pastor will reply soon. God bless you 🙏', sender: 'bot', type: 'text', time: Date.now()}
+    });
+  } else {
+    update(chatRef, {name: userName, church: 'King of Kings Anglican Church'});
+  }
+
+  onValue(ref(db, 'chats/' + uid + '/status'), s => {
+    if(s.val() === 'blocked') {
+      document.getElementById('messages').innerHTML = '<div class="blocked">👑 You have been removed by Pastor.<br>Contact King of Kings Anglican Church to restore access.</div>';
+      document.getElementById('chatInput').style.display = 'none';
+      document.getElementById('status').textContent = 'Blocked';
+    }
   });
+
+  if(chatListener) chatListener();
+  chatListener = onChildAdded(chatRef, snap => {
+    displayMessage(snap.val());
+  });
+
+  onValue(ref(db, 'chats/' + uid + '/botStatus'), s => {
+    if(s.val() === 'offline') {
+      document.getElementById('typing').style.display = 'block';
+    } else {
+      document.getElementById('typing').style.display = 'none';
+    }
+  });
+
+  set(ref(db, 'chats/' + uid + '/botStatus'), 'online');
+}
+
+window.changeName = function() {
+  document.getElementById('newName').value = userName;
+  document.getElementById('namePopup').style.display = 'flex';
+}
+
+window.saveName = function() {
+  const name = document.getElementById('newName').value.trim();
+  if(name) {
+    userName = name;
+    localStorage.setItem('KKAC_name', name);
+    update(ref(db, 'chats/' + uid), {name: name});
+    document.getElementById('userTitle').textContent = 'Chat with Pastor - ' + name;
+  }
+  closeName();
+}
+
+window.closeName = function() {
+  document.getElementById('namePopup').style.display = 'none';
+}
+
+window.changeUID = function() {
+  document.getElementById('newUID').value = '';
+  document.getElementById('uidPopup').style.display = 'flex';
+}
+
+window.saveUID = function() {
+  const newUID = document.getElementById('newUID').value.trim();
+  if(newUID) {
+    window.location.href = window.location.pathname + '?uid=' + newUID;
+  } else {
+    const newAutoUID = 'KKAC_GUEST_' + Date.now() + '_' + Math.random().toString(36).substr(2,5);
+    window.location.href = window.location.pathname + '?uid=' + newAutoUID;
+  }
+}
+
+window.closeUID = function() {
+  document.getElementById('uidPopup').style.display = 'none';
 }
 
 window.sendText = function() {
   const txt = document.getElementById('msgInput').value.trim();
-  if(!txt ||!currentUid) return;
-  push(ref(db, 'chats/' + currentUid), {text:txt, sender:'host', type:'text', time:Date.now()});
+  if(!txt) return alert('Type a message first!');
+
+  push(ref(db, 'chats/' + uid), {
+    text: txt,
+    sender: 'user',
+    type: 'text',
+    time: Date.now()
+  });
   document.getElementById('msgInput').value = '';
 }
 
@@ -139,9 +265,10 @@ window.sendImage = function() {
 }
 document.getElementById('imgInput').onchange = e => {
   const file = e.target.files[0];
+  if(!file) return;
   const reader = new FileReader();
   reader.onload = () => {
-    push(ref(db, 'chats/' + currentUid), {text:reader.result, sender:'host', type:'image', time:Date.now()});
+    push(ref(db, 'chats/' + uid), {text:reader.result, sender:'user', type:'image', time:Date.now()});
   }
   reader.readAsDataURL(file);
 }
@@ -151,12 +278,23 @@ window.sendVoice = function() {
 }
 document.getElementById('audioInput').onchange = e => {
   const file = e.target.files[0];
+  if(!file) return;
   const reader = new FileReader();
   reader.onload = () => {
-    push(ref(db, 'chats/' + currentUid), {text:reader.result, sender:'host', type:'voice', time:Date.now()});
+    push(ref(db, 'chats/' + uid), {text:reader.result, sender:'user', type:'voice', time:Date.now()});
   }
   reader.readAsDataURL(file);
 }
+
+window.sendEmoji = function() {
+  const emoji = prompt('Enter emoji: 😊 🙏 ❤️ ✝️ 👑 🔥');
+  if(emoji) document.getElementById('msgInput').value += emoji;
+}
+
+initChat();
+window.addEventListener('beforeunload', () => {
+  set(ref(db, 'chats/' + uid + '/botStatus'), 'offline');
+});
 </script>
 </body>
 </html>

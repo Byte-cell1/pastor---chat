@@ -295,6 +295,7 @@ initChat();
 window.addEventListener('beforeunload', () => {
   set(ref(db, 'chats/' + uid + '/botStatus'), 'offline');
 });
+
 </script>
 </body>
 </html>

@@ -22,6 +22,14 @@ body{margin:0;font-family:Arial;background:#0b141a;color:#fff;display:flex;heigh
 .bottom{display:flex;padding:5px;background:#1f2c33;gap:4px}
 #msgInput{flex:1;padding:10px;border:none;border-radius:20px;background:#2a3b44;color:#fff;outline:none}
 .bottom button{border:none;border-radius:50%;width:45px;height:45px;font-size:20px;cursor:pointer;background:#2a3b44;color:#fff}
+
+/* Popup for link */
+.popup{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);display:none;justify-content:center;align-items:center;z-index:100}
+.popupbox{background:#1f2c33;padding:20px;border-radius:12px;max-width:90%;width:400px}
+.popupbox input{width:100%;padding:10px;margin:10px 0;border:none;border-radius:8px;background:#2a3b44;color:#fff}
+.popupbox button{padding:8px 16px;border:none;border-radius:8px;cursor:pointer;margin-right:8px}
+.copybtn{background:#005c4b;color:#fff}
+.closebtn{background:#2a3b44;color:#fff}
 </style>
 </head>
 <body>
@@ -47,6 +55,19 @@ body{margin:0;font-family:Arial;background:#0b141a;color:#fff;display:flex;heigh
 
 <input type="file" id="imgInput" accept="image/*" style="display:none">
 <input type="file" id="audioInput" accept="audio/*" style="display:none">
+
+<!-- Popup to show link -->
+<div class="popup" id="linkPopup">
+  <div class="popupbox">
+    <h3>Member Link Generated</h3>
+    <p>Send this link to the member:</p>
+    <input id="memberLink" readonly>
+    <div>
+      <button class="copybtn" onclick="copyLink()">Copy Link</button>
+      <button class="closebtn" onclick="closePopup()">Close</button>
+    </div>
+  </div>
+</div>
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
@@ -90,9 +111,9 @@ window.addMember = function() {
   const name = prompt('Enter member name/ID:');
   if(!name) return;
   const uid = name + '_' + Date.now();
-  const link = window.location.origin + '/pastor---chat/Members.html?uid=' + uid;
+  const link = 'https://byte-cell.github.io/pastor---chat/Members.html?uid=' + uid;
 
-  // Create empty chat so user appears in list
+  // Create welcome message so user appears in list
   set(ref(db, 'chats/' + uid + '/welcome'), {
     text: 'Welcome! You can now chat with Pastor.',
     sender: 'host',
@@ -100,8 +121,18 @@ window.addMember = function() {
     time: Date.now()
   });
 
-  alert('Member created!\n\nSend this link to member:\n' + link);
-  navigator.clipboard.writeText(link);
+  // Show popup with link
+  document.getElementById('memberLink').value = link;
+  document.getElementById('linkPopup').style.display = 'flex';
+}
+
+window.copyLink = function() {
+  navigator.clipboard.writeText(document.getElementById('memberLink').value);
+  alert('Link copied! Now paste in WhatsApp and send to member');
+}
+
+window.closePopup = function() {
+  document.getElementById('linkPopup').style.display = 'none';
 }
 
 function loadChat(uid, el) {

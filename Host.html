@@ -1,60 +1,109 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>Pastor Dashboard</title>
+<title>King of Kings Anglican Church - Pastor Dashboard</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
-body{margin:0;font-family:Arial;background:#0b141a;color:#fff;display:flex;height:100vh}
-#users{width:280px;background:#111b21;border-right:1px solid #2a3b44;overflow-y:auto}
-.topbar{padding:12px;background:#1f2c33;border-bottom:1px solid #2a3b44;display:flex;justify-content:space-between;align-items:center}
-.addbtn{background:#005c4b;border:none;color:#fff;padding:6px 12px;border-radius:8px;cursor:pointer;font-size:14px}
-.user{padding:12px;cursor:pointer;border-bottom:1px solid #1f2c33;display:flex;justify-content:space-between;align-items:center}
-.user:hover{background:#202c33}
-.user.active{background:#005c4b}
-.user.blocked{opacity:0.5}
-.user span{flex:1}
-.delbtn{background:#a32f2f;border:none;color:#fff;padding:4px 8px;border-radius:6px;cursor:pointer;font-size:12px;margin-left:5px}
-.restorebtn{background:#2a9d8f;border:none;color:#fff;padding:4px 8px;border-radius:6px;cursor:pointer;font-size:12px;margin-left:5px}
-#chat{flex:1;display:flex;flex-direction:column}
-.top{padding:12px;background:#1f2c33;border-bottom:1px solid #2a3b44}
-#messages{flex:1;overflow-y:auto;padding:10px}
-.msgwrap{margin:8px 0;display:flex;flex-direction:column;max-width:70%}
-.me{align-self:flex-end}
-.them{align-self:flex-start}
-.msg{padding:8px 12px;border-radius:8px}
-.me.msg{background:#005c4b;text-align:right}
-.them.msg{background:#202c33}
-.time{font-size:11px;color:#8696a0;margin-top:3px;padding:0 4px}
-.msg img{max-width:200px;border-radius:8px}
-.msg audio{max-width:220px}
-.bottom{display:flex;padding:5px;background:#1f2c33;gap:4px}
-#msgInput{flex:1;padding:10px;border:none;border-radius:20px;background:#2a3b44;color:#fff;outline:none}
-.bottom button{border:none;border-radius:50%;width:45px;height:45px;font-size:20px;cursor:pointer;background:#2a3b44;color:#fff}
-.popup{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);display:none;justify-content:center;align-items:center;z-index:100}
-.popupbox{background:#1f2c33;padding:20px;border-radius:12px;max-width:90%;width:400px}
-.popupbox input{width:100%;padding:10px;margin:10px 0;border:none;border-radius:8px;background:#2a3b44;color:#fff}
-.popupbox button{padding:8px 16px;border:none;border-radius:8px;cursor:pointer;margin-right:8px}
-.copybtn{background:#005c4b;color:#fff}
-.closebtn{background:#2a3b44;color:#fff}
+*{box-sizing:border-box}
+body{margin:0;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial;background:#000;color:#ffd700;display:flex;height:100vh;overflow:hidden}
+
+#users{width:320px;background:#111;border-right:3px solid #ffd700;display:flex;flex-direction:column;transition:transform 0.3s ease;position:relative;z-index:10}
+#users.hide{transform:translateX(-100%);position:absolute;height:100%}
+
+.church-header{text-align:center;padding:12px;font-size:12px;color:#ffd700;background:#000;font-weight:700;letter-spacing:1px;border-bottom:2px solid #ffd700}
+.topbar{padding:12px;background:#1a1a1a;display:flex;justify-content:space-between;align-items:center;border-bottom:2px solid #ffd700}
+.topbar b{font-size:14px;color:#ffd700}
+.menubtn{background:#000;border:2px solid #ffd700;color:#ffd700;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:16px;font-weight:700}
+.addbtn{background:#ffd700;border:none;color:#000;padding:8px 14px;border-radius:10px;cursor:pointer;font-weight:700;box-shadow:0 4px 15px rgba(255,215,0,0.4)}
+
+.user{padding:12px 15px;cursor:pointer;border-bottom:1px solid #333;display:flex;justify-content:space-between;align-items:center;transition:0.2s;background:#111}
+.user:hover{background:#1a1a1a;transform:translateX(5px)}
+.user.active{background:linear-gradient(90deg,#ffd700 0%,#ffed4e 100%);color:#000;border-left:4px solid #fff;font-weight:700}
+.user.blocked{opacity:0.4}
+.user span{flex:1;overflow:hidden;text-overflow:ellipsis}
+.delbtn{background:#c62828;border:none;color:#fff;padding:4px 8px;border-radius:6px;cursor:pointer;font-size:11px;margin-left:5px}
+.restorebtn{background:#2e7d32;border:none;color:#fff;padding:4px 8px;border-radius:6px;cursor:pointer;font-size:11px;margin-left:5px}
+
+#chat{flex:1;display:flex;flex-direction:column;background:#000}
+.top{padding:12px 15px;background:#1a1a1a;display:flex;justify-content:space-between;align-items:center;border-bottom:3px solid #ffd700;box-shadow:0 4px 20px rgba(255,215,0,0.3)}
+.top-left{display:flex;align-items:center;gap:10px}
+.botstatus{font-size:12px;color:#b8860b}
+.chatbtns button{background:#000;border:2px solid #ffd700;color:#ffd700;padding:6px 10px;border-radius:8px;cursor:pointer;font-size:12px;margin-left:5px;font-weight:700;transition:0.2s}
+.chatbtns button:hover{background:#ffd700;color:#000}
+
+#messages{flex:1;overflow-y:auto;padding:20px;background:#000 url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" opacity="0.05"><path d="M30 5 L35 25 L55 25 L40 35 L45 55 L30 45 L15 55 L20 35 L5 25 L25 25 Z" fill="%23ffd700"/></svg>')}
+.msgwrap{margin:8px 0;display:flex;flex-direction:column;max-width:65%;animation:slideIn 0.3s ease}
+@keyframes slideIn{from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)}}
+
+/* FLIPPED: Host on LEFT, User on RIGHT */
+.host{align-self:flex-start}
+.user-msg{align-self:flex-end}
+
+.msg{padding:12px 16px;border-radius:18px;word-wrap:break-word;line-height:1.4;box-shadow:0 4px 15px rgba(255,215,0,0.2);border:1px solid #ffd700}
+.host.msg{background:#111;color:#ffd700;border-bottom-left-radius:5px}
+.user-msg.msg{background:linear-gradient(135deg,#ffd700 0%,#ffed4e 100%);color:#000;border-bottom-right-radius:5px;font-weight:600}
+.bot.msg{border:2px solid #ffd700;background:#1a1a1a;color:#ffd700}
+
+.time{font-size:10px;color:#b8860b;margin-top:3px;padding:0 4px}
+.host.time{text-align:left}
+.user-msg.time{text-align:right}
+
+.msg img{max-width:250px;border-radius:12px;margin-top:4px;border:2px solid #ffd700;box-shadow:0 4px 15px rgba(255,215,0,0.4)}
+.msg audio{max-width:250px;margin-top:4px;filter:sepia(1) hue-rotate(45deg)}
+
+.bottom{display:none;padding:10px;background:#111;gap:8px;align-items:center;border-top:3px solid #ffd700}
+.bottom.show{display:flex}
+#msgInput{flex:1;padding:12px 18px;border:none;border-radius:25px;background:#000;color:#ffd700;outline:none;font-size:15px;border:2px solid #ffd700}
+#msgInput:focus{border-color:#ffed4e;box-shadow:0 0 15px rgba(255,215,0,0.5)}
+.bottom button{border:none;border-radius:50%;width:48px;height:48px;font-size:22px;cursor:pointer;background:#000;color:#ffd700;border:2px solid #ffd700;transition:0.2s}
+.bottom button:hover{background:#ffd700;color:#000;transform:scale(1.1)}
+
+.popup{position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);display:none;justify-content:center;align-items:center;z-index:100}
+.popupbox{background:#111;padding:25px;border-radius:20px;max-width:90%;width:420px;border:3px solid #ffd700;box-shadow:0 10px 40px rgba(255,215,0,0.4)}
+.popupbox input{width:100%;padding:12px;margin:12px 0;border:none;border-radius:8px;background:#000;color:#ffd700;border:2px solid #ffd700}
+.popupbox button{padding:10px 18px;border:none;border-radius:8px;cursor:pointer;margin-right:8px;font-weight:700;background:#ffd700;color:#000;border:2px solid #ffd700}
+.closebtn{background:#000;color:#ffd700}
+
+@media(max-width:768px){
+  #users{width:85%;max-width:300px}
+  #chat{width:100%}
+}
 </style>
 </head>
 <body>
 
 <div id="users">
+  <div class="church-header">👑 KING OF KINGS ANGLICAN CHURCH 👑</div>
   <div class="topbar">
     <b>Members</b>
-    <button class="addbtn" onclick="addMember()">+ Add</button>
+    <div style="display:flex;gap:5px">
+      <button class="menubtn" onclick="toggleMenu()">☰</button>
+      <button class="addbtn" onclick="addMember()">+ New</button>
+    </div>
   </div>
-  <div id="usersList"><div style="padding:12px">Loading...</div></div>
+  <div id="usersList" style="flex:1;overflow-y:auto"><div style="padding:15px;color:#b8860b">Loading members...</div></div>
 </div>
 
 <div id="chat">
-  <div class="top"><b>Select a user</b></div>
-  <div id="messages">Click a user on left</div>
-  <div class="bottom" style="display:none">
+  <div class="top">
+    <div class="top-left">
+      <button class="menubtn" onclick="toggleMenu()">☰</button>
+      <div>
+        <b id="chatTitle">Select a member</b>
+        <div class="botstatus" id="botStatus">🤖 Bot: Active</div>
+      </div>
+    </div>
+    <div class="chatbtns">
+      <button onclick="toggleBot()">🤖 Bot</button>
+      <button onclick="deleteLastMsg()">🗑 Delete</button>
+    </div>
+  </div>
+  <div id="messages"><div style="text-align:center;padding:50px;color:#b8860b">Click ☰ Menu to see members<br>👑 King of Kings Anglican Church 👑</div></div>
+  <div class="bottom" id="chatInput">
+    <button onclick="sendEmoji()">😊</button>
     <button onclick="sendImage()">📷</button>
     <button onclick="sendVoice()">🎤</button>
-    <input id="msgInput" placeholder="Type reply..." onkeypress="if(event.key==='Enter')sendText()">
+    <input id="msgInput" placeholder="Type message to member..." onkeypress="if(event.key==='Enter')sendText()">
     <button onclick="sendText()">➤</button>
   </div>
 </div>
@@ -64,19 +113,31 @@ body{margin:0;font-family:Arial;background:#0b141a;color:#fff;display:flex;heigh
 
 <div class="popup" id="linkPopup">
   <div class="popupbox">
-    <h3>Member Link Generated</h3>
-    <p>Send this link to the member:</p>
+    <h3 style="color:#ffd700">👑 Member Link Generated</h3>
+    <p style="color:#b8860b">Send this link to member of King of Kings:</p>
     <input id="memberLink" readonly>
     <div>
-      <button class="copybtn" onclick="copyLink()">Copy Link</button>
+      <button onclick="copyLink()">Copy Link</button>
       <button class="closebtn" onclick="closePopup()">Close</button>
     </div>
   </div>
 </div>
 
+<div class="popup" id="emojiPopup">
+  <div class="popupbox">
+    <h3 style="color:#ffd700">Pick Emoji</h3>
+    <div style="font-size:32px;cursor:pointer;display:flex;gap:10px;flex-wrap:wrap">
+      <span onclick="pickEmoji('😊')">😊</span><span onclick="pickEmoji('🙏')">🙏</span>
+      <span onclick="pickEmoji('❤️')">❤️</span><span onclick="pickEmoji('✝️')">✝️</span>
+      <span onclick="pickEmoji('👑')">👑</span><span onclick="pickEmoji('🔥')">🔥</span>
+    </div>
+    <button class="closebtn" onclick="closeEmoji()" style="margin-top:15px">Close</button>
+  </div>
+</div>
+
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-import { getDatabase, ref, push, onChildAdded, onValue, set, update } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getDatabase, ref, push, onChildAdded, onValue, set, update, off, get, remove, query, orderByKey, limitToLast } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDXeh9GNe3E8L6tE9xMA8fE2OJXCSuhLMY",
@@ -92,37 +153,116 @@ const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
 let currentUid = null;
+let chatRef = null;
+let botEnabled = true;
+let usedWords = new Set();
+let menuOpen = true;
 
 function vibrate() {
-  if(navigator.vibrate) navigator.vibrate(300);
-  new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAESsAABErAAABAAgAZGF0YQAAAAA=').play().catch(()=>{});
+  if(navigator.vibrate) navigator.vibrate([100,50,100]);
 }
 
 function formatTime(ts) {
   return new Date(ts).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
 }
 
-// Load users with status
+window.toggleMenu = function() {
+  menuOpen =!menuOpen;
+  document.getElementById('users').classList.toggle('hide',!menuOpen);
+}
+
+// FLIPPED LOGIC: Host = left, User = right
+function displayMessage(m, isOld=false) {
+  if(!m || typeof m!== 'object' ||!m.text) return;
+  const wrap = document.createElement('div');
+
+  // Host and Bot messages go LEFT
+  if(m.sender === 'host' || m.sender === 'bot') {
+    wrap.className = 'msgwrap host';
+  } else {
+    wrap.className = 'msgwrap user-msg'; // Member messages go RIGHT
+  }
+
+  const msgDiv = document.createElement('div');
+  msgDiv.className = 'msg ' + (m.sender === 'bot'? 'bot' : '');
+  if(m.type === 'image') msgDiv.innerHTML = `<img src="${m.text}">`;
+  else if(m.type === 'voice') msgDiv.innerHTML = `<audio controls src="${m.text}"></audio>`;
+  else msgDiv.textContent = m.text;
+
+  const timeDiv = document.createElement('div');
+  timeDiv.className = 'time';
+  timeDiv.textContent = formatTime(m.time || Date.now()) + (m.sender === 'bot'? ' 🤖' : '');
+
+  wrap.appendChild(msgDiv);
+  wrap.appendChild(timeDiv);
+  document.getElementById('messages').appendChild(wrap);
+  document.getElementById('messages').scrollTop = 99999;
+
+  if(!isOld && m.sender === 'user') {
+    vibrate();
+    if(botEnabled) checkBotReply(m.text);
+  }
+}
+
+function botReply(userMsg) {
+  const responses = [
+    "God bless you 🙏 I'm listening. Tell me more",
+    "Thank you for reaching out to King of Kings ❤️ How can I pray for you?",
+    "I hear you. The Lord is with you always ✝️",
+    "That's on my heart now. Want to share more?",
+    "You're not alone in this. Let's talk about it 👑",
+    "I appreciate you trusting King of Kings Anglican Church"
+  ];
+  const filtered = responses.filter(r => {
+    const words = r.toLowerCase().replace(/[^\w\s]/g,'').split(' ');
+    return!words.some(w => usedWords.has(w) && w.length > 3);
+  });
+  const choice = filtered.length > 0? filtered[Math.floor(Math.random()*filtered.length)] : responses[0];
+  choice.split(' ').forEach(w => usedWords.add(w.toLowerCase().replace(/[^\w\s]/g,'')));
+  return choice;
+}
+
+function checkBotReply(msg) {
+  if(!currentUid) return;
+  get(ref(db, 'chats/' + currentUid + '/botStatus')).then(snap => {
+    if(snap.val() === 'offline') {
+      setTimeout(() => {
+        const reply = botReply(msg);
+        push(ref(db, 'chats/' + currentUid), {
+          text: reply, sender: 'bot', type: 'text', time: Date.now()
+        });
+      }, 2000 + Math.random()*2000);
+    }
+  });
+}
+
+window.toggleBot = function() {
+  botEnabled =!botEnabled;
+  document.getElementById('botStatus').textContent = '🤖 Bot: ' + (botEnabled? 'Active' : 'Off');
+}
+
 onValue(ref(db, 'chats'), snap => {
   const usersDiv = document.getElementById('usersList');
   usersDiv.innerHTML = '';
   if(!snap.exists()) {
-    usersDiv.innerHTML = '<div style="padding:12px;color:#8696a0">No members yet. Click + Add</div>';
+    usersDiv.innerHTML = '<div style="padding:15px;color:#b8860b">No members yet. Click + New</div>';
     return;
   }
   snap.forEach(child => {
     const uid = child.key;
     const data = child.val();
     const status = data.status || 'active';
+    const name = data.name || 'Guest ' + uid.slice(-4);
 
     const div = document.createElement('div');
     div.className = 'user ' + (status === 'blocked'? 'blocked' : '');
-    div.innerHTML = `<span onclick="loadChat('${uid}', this.parentElement)">${uid}</span>`;
+    div.onclick = () => loadChat(uid, div);
+    div.innerHTML = `<span>👑 ${name}</span>`;
 
     if(status === 'active') {
-      div.innerHTML += `<button class="delbtn" onclick="removeUser('${uid}')">Remove</button>`;
+      div.innerHTML += `<button class="delbtn" onclick="event.stopPropagation(); removeUser('${uid}')">Remove</button>`;
     } else {
-      div.innerHTML += `<button class="restorebtn" onclick="restoreUser('${uid}')">Restore</button>`;
+      div.innerHTML += `<button class="restorebtn" onclick="event.stopPropagation(); restoreUser('${uid}')">Restore</button>`;
     }
 
     usersDiv.appendChild(div);
@@ -130,9 +270,7 @@ onValue(ref(db, 'chats'), snap => {
 });
 
 window.removeUser = function(uid) {
-  if(confirm('Block this member? They won\'t be able to chat.')) {
-    update(ref(db, 'chats/' + uid), {status: 'blocked'});
-  }
+  if(confirm('Block this member from King of Kings chat?')) update(ref(db, 'chats/' + uid), {status: 'blocked'});
 }
 
 window.restoreUser = function(uid) {
@@ -140,14 +278,17 @@ window.restoreUser = function(uid) {
 }
 
 window.addMember = function() {
-  const name = prompt('Enter member name/ID:');
+  const name = prompt('Enter member name for King of Kings:');
   if(!name) return;
-  const uid = name + '_' + Date.now();
-  const link = 'https://byte-cell.github.io/pastor---chat/Members.html?uid=' + uid;
+  const uid = 'KKAC_' + Date.now();
+  const link = window.location.origin + '/Members.html?uid=' + uid;
 
   set(ref(db, 'chats/' + uid), {
     status: 'active',
-    welcome: {text: 'Welcome! You can now chat with Pastor.', sender: 'host', type: 'text', time: Date.now()}
+    name: name,
+    botStatus: 'offline',
+    church: 'King of Kings Anglican Church',
+    welcome: {text: 'Welcome to King of Kings Anglican Church! Pastor or AI Assistant will reply 🙏', sender: 'bot', type: 'text', time: Date.now()}
   });
 
   document.getElementById('memberLink').value = link;
@@ -156,66 +297,82 @@ window.addMember = function() {
 
 window.copyLink = function() {
   navigator.clipboard.writeText(document.getElementById('memberLink').value);
-  alert('Link copied! Paste in WhatsApp');
+  alert('Link copied! Send to member 👑');
 }
 
 window.closePopup = function() {
   document.getElementById('linkPopup').style.display = 'none';
 }
 
-function loadChat(uid, el) {
-  const status = el.classList.contains('blocked');
-  if(status) {
+window.sendEmoji = function() {
+  document.getElementById('emojiPopup').style.display = 'flex';
+}
+window.closeEmoji = function() {
+  document.getElementById('emojiPopup').style.display = 'none';
+}
+window.pickEmoji = function(emoji) {
+  document.getElementById('msgInput').value += emoji;
+  closeEmoji();
+}
+
+async function loadChat(uid, el) {
+  if(el.classList.contains('blocked')) {
     alert('This member is blocked. Restore them first.');
     return;
   }
 
+  if(chatRef) off(chatRef);
+
   currentUid = uid;
+  usedWords.clear();
+
   document.querySelectorAll('.user').forEach(u=>u.classList.remove('active'));
   el.classList.add('active');
 
-  document.querySelector('.top b').textContent = uid;
-  document.querySelector('.bottom').style.display = 'flex';
+  const name = el.querySelector('span').textContent.replace('👑 ', '');
+  document.getElementById('chatTitle').textContent = name;
+  document.getElementById('chatInput').classList.add('show');
+  document.getElementById('messages').innerHTML = 'Loading chat...';
+
+  if(window.innerWidth < 768) toggleMenu();
+
+  chatRef = ref(db, 'chats/' + uid);
+
+  const snapshot = await get(chatRef);
   document.getElementById('messages').innerHTML = '';
-
-  onChildAdded(ref(db, 'chats/' + uid), snap => {
-    const m = snap.val();
-    if(!m.text) return; // skip status field
-
-    const wrap = document.createElement('div');
-    wrap.className = 'msgwrap ' + (m.sender === 'host'? 'me' : 'them');
-
-    const msgDiv = document.createElement('div');
-    msgDiv.className = 'msg';
-    if(m.type === 'image') msgDiv.innerHTML = `<img src="${m.text}">`;
-    else if(m.type === 'voice') msgDiv.innerHTML = `<audio controls src="${m.text}"></audio>`;
-    else msgDiv.textContent = m.text;
-
-    const timeDiv = document.createElement('div');
-    timeDiv.className = 'time';
-    timeDiv.textContent = formatTime(m.time || Date.now());
-
-    wrap.appendChild(msgDiv);
-    wrap.appendChild(timeDiv);
-    document.getElementById('messages').appendChild(wrap);
-    document.getElementById('messages').scrollTop = 99999;
-
-    if(m.sender === 'user') vibrate();
+  snapshot.forEach(child => {
+    displayMessage(child.val(), true);
   });
+
+  onChildAdded(chatRef, snap => {
+    displayMessage(snap.val(), false);
+  });
+
+  set(ref(db, 'chats/' + uid + '/botStatus'), 'online');
+  document.getElementById('msgInput').focus();
 }
 
 window.sendText = function() {
   const txt = document.getElementById('msgInput').value.trim();
-  if(!txt ||!currentUid) return;
-  push(ref(db, 'chats/' + currentUid), {text:txt, sender:'host', type:'text', time:Date.now()});
+  if(!txt) return alert('Type a message first!');
+  if(!currentUid) return alert('Select a member from menu ☰ first!');
+
+  push(ref(db, 'chats/' + currentUid), {
+    text:txt,
+    sender:'host',
+    type:'text',
+    time:Date.now()
+  });
   document.getElementById('msgInput').value = '';
 }
 
 window.sendImage = function() {
+  if(!currentUid) return alert('Select a member first!');
   document.getElementById('imgInput').click();
 }
 document.getElementById('imgInput').onchange = e => {
   const file = e.target.files[0];
+  if(!file ||!currentUid) return;
   const reader = new FileReader();
   reader.onload = () => {
     push(ref(db, 'chats/' + currentUid), {text:reader.result, sender:'host', type:'image', time:Date.now()});
@@ -224,16 +381,35 @@ document.getElementById('imgInput').onchange = e => {
 }
 
 window.sendVoice = function() {
+  if(!currentUid) return alert('Select a member first!');
   document.getElementById('audioInput').click();
 }
 document.getElementById('audioInput').onchange = e => {
   const file = e.target.files[0];
+  if(!file ||!currentUid) return;
   const reader = new FileReader();
   reader.onload = () => {
     push(ref(db, 'chats/' + currentUid), {text:reader.result, sender:'host', type:'voice', time:Date.now()});
   }
   reader.readAsDataURL(file);
 }
+
+window.deleteLastMsg = async function() {
+  if(!currentUid) return alert('Select a user first');
+  const q = query(ref(db, 'chats/' + currentUid), orderByKey(), limitToLast(5));
+  const snap = await get(q);
+  let lastKey = null;
+  snap.forEach(child => {
+    if(child.val().sender === 'host') lastKey = child.key;
+  });
+  if(!lastKey) return alert('No message to delete');
+  await remove(ref(db, 'chats/' + currentUid + '/' + lastKey));
+  alert('Last message deleted');
+}
+
+window.addEventListener('beforeunload', () => {
+  if(currentUid) set(ref(db, 'chats/' + currentUid + '/botStatus'), 'offline');
+});
 </script>
 </body>
 </html>
